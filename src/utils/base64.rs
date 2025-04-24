@@ -30,7 +30,7 @@ fn base64_decode(input: &str, accept_urlsafe: bool) -> Option<String> {
     match engine.decode(input) {
         Ok(decoded) => Some(String::from_utf8_lossy(&decoded).to_string()),
         Err(e) => {
-            log::error!("Failed to decode base64: {}", e);
+            log::warn!("Failed to decode base64: {}", e);
             None
         } // Handle invalid Base64 input
     }
