@@ -24,7 +24,7 @@
     "postcss": "^8.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "subconverter-wasm": "0.2.13-beta.dev.2e137e4"
+    "subconverter-wasm": "0.2.13-beta.dev.f7b7f93"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -39,7 +39,7 @@
     "tailwindcss": "^4.1.4",
     "typescript": "^5.8.3",
     "url": "^0.11.4",
-    "subconverter-wasm": "0.2.13-beta.dev.2e137e4"
+    "subconverter-wasm": "0.2.13-beta.dev.f7b7f93"
   },
   "engines": {
     "node": ">=20.0.0"
