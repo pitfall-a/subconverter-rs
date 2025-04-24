@@ -48,8 +48,13 @@ importers:
         specifier: ^19.1.0
         version: 19.1.0(react@19.1.0)
       subconverter-wasm:
+<<<<<<< HEAD
+        specifier: 0.2.13-beta.dev.f7b7f93
+        version: 0.2.13-beta.dev.f7b7f93
+=======
         specifier: 0.2.19
         version: 0.2.19
+>>>>>>> origin/main
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.1
