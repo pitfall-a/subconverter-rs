@@ -8,12 +8,9 @@ on:
     inputs:
       create_prerelease:
         description: 'Create a pre-release (true/false)'
-        required: true
-        default: 'false'
-        type: choice
-        options:
-          - true
-          - false
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
