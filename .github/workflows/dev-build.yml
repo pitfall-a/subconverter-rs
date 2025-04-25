@@ -4,13 +4,7 @@ on:
   push:
     branches:
       - 'dev' # Trigger on push to any branch
-  workflow_dispatch: # Allow manual trigger
-    inputs:
-      create_prerelease:
-        description: 'Create a pre-release (true/false)'
-        required: false
-        default: false
-        type: boolean
+  workflow_dispatch: # Allow manual trigger, no inputs needed
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
@@ -81,18 +75,16 @@ jobs:
         path: subconverter/
 
     - name: Package Pre-release Artifact (Linux/macOS)
-      if: runner.os != 'Windows' && github.event_name == 'workflow_dispatch' && github.event.inputs.create_prerelease == 'true'
       run: tar czf ${{ matrix.artifact }}-${{ env.RELEASE_VERSION }}.tar.gz subconverter
 
     - name: Create Pre-release
-      if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_prerelease == 'true'
       uses: softprops/action-gh-release@v2
       with:
-        files: ${{ matrix.artifact }}-${{ env.RELEASE_VERSION }}.tar.gz # Adjusted later for Windows
+        files: ${{ matrix.artifact }}-${{ env.RELEASE_VERSION }}.tar.gz
         tag_name: dev-${{ env.RELEASE_VERSION }}
         name: Dev Build ${{ env.RELEASE_VERSION }}
         prerelease: true
-        draft: false # Create an actual pre-release, not a draft
+        draft: true
 
   macos_build:
     strategy:
@@ -140,18 +132,16 @@ jobs:
         path: subconverter/
 
     - name: Package Pre-release Artifact (Linux/macOS)
-      if: runner.os != 'Windows' && github.event_name == 'workflow_dispatch' && github.event.inputs.create_prerelease == 'true'
       run: tar czf ${{ matrix.artifact }}-${{ env.RELEASE_VERSION }}.tar.gz subconverter
 
     - name: Create Pre-release
-      if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_prerelease == 'true'
       uses: softprops/action-gh-release@v2
       with:
         files: ${{ matrix.artifact }}-${{ env.RELEASE_VERSION }}.tar.gz
         tag_name: dev-${{ env.RELEASE_VERSION }}
         name: Dev Build ${{ env.RELEASE_VERSION }}
         prerelease: true
-        draft: false
+        draft: true
 
   windows_build:
     strategy:
@@ -199,15 +189,13 @@ jobs:
         path: subconverter/
 
     - name: Package Pre-release Artifact (Windows)
-      if: runner.os == 'Windows' && github.event_name == 'workflow_dispatch' && github.event.inputs.create_prerelease == 'true'
       run: 7z a ${{ matrix.artifact }}-${{ env.RELEASE_VERSION }}.7z subconverter/
 
     - name: Create Pre-release
-      if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_prerelease == 'true'
       uses: softprops/action-gh-release@v2
       with:
-        files: ${{ matrix.artifact }}-${{ env.RELEASE_VERSION }}.7z # Use .7z for Windows
+        files: ${{ matrix.artifact }}-${{ env.RELEASE_VERSION }}.7z
         tag_name: dev-${{ env.RELEASE_VERSION }}
         name: Dev Build ${{ env.RELEASE_VERSION }}
         prerelease: true
-        draft: false 
+        draft: true 
