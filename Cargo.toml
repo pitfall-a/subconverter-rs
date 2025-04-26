@@ -6,12 +6,12 @@ description = "A more powerful utility to convert between proxy subscription for
 license = "GPL-3.0+"
 
 [lib]
+name = "libsubconverter"
 crate-type = ["cdylib", "rlib"]
 
 [features]
 default = []
 js_runtime = ["quickjs"]
-vendored-openssl = ["openssl/vendored"]
 web-api = ["actix-web"]
 
 
@@ -40,7 +40,6 @@ serde_yaml = "0.9.34"
 quickjs = { version = "0.1.0", optional = true }
 md-5 = "0.10.6"
 clap = { version = "4.5.35", features = ["derive"] }
-openssl = { version = "0.10", optional = true }
 minijinja = "2.9.0"
 bitflags = "2.9.0"
 futures = "0.3.31"
@@ -70,7 +69,7 @@ web-sys = { version = "0.3", features = [
 console_log = "1.0"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-awc = { version = "3.6.0", features = ["openssl"] }
+awc = { version = "3.6.0", features = ["rustls"] }
 tokio = { version = "1.43.0", features = ["rt", "fs", "sync", "io-util"] }
 
 [dev-dependencies]

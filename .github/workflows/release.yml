@@ -240,7 +240,9 @@ jobs:
         echo "Updated Cargo.toml version for branch build to ${{ env.RELEASE_VERSION }}"
         
     - name: Build
-      run: cargo build --release --features=web-api --target ${{ matrix.target }}
+      run: |
+        cargo install --force --locked bindgen-cli
+        cargo build --release --features=web-api --target ${{ matrix.target }}
       
     - name: Prepare artifact
       shell: bash
