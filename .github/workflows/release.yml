@@ -84,7 +84,7 @@ jobs:
       
     - name: Build with cross
       run: cross build --release --features=web-api --target ${{ matrix.target }}
-        
+      
     - name: Prepare artifact
       run: |
         mkdir -p subconverter/
