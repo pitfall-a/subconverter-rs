@@ -84,9 +84,7 @@ jobs:
       
     - name: Build with cross
       run: cross build --release --features=web-api --target ${{ matrix.target }}
-      env:
-        RUSTFLAGS: ${{ matrix.target == 'armv7-unknown-linux-gnueabihf' && '-C target-feature=+crt-static' || '' }}
-        
+      
     - name: Prepare artifact
       run: |
         mkdir -p subconverter/
