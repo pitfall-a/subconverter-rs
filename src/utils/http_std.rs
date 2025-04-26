@@ -1,11 +1,9 @@
 use crate::utils::system::get_system_proxy;
+use awc::Client;
 use case_insensitive_string::CaseInsensitiveString;
 use std::collections::HashMap;
 use std::error::Error as StdError;
 use std::time::Duration;
-
-use reqwest::{Client, Proxy};
-
 /// Default timeout for HTTP requests in seconds
 const DEFAULT_TIMEOUT: u64 = 15;
 
@@ -87,46 +85,39 @@ pub async fn web_get_async(
     headers: Option<&HashMap<CaseInsensitiveString, String>>,
 ) -> Result<HttpResponse, HttpError> {
     // Build client with proxy if specified
-    let mut client_builder = Client::builder()
-        .timeout(Duration::from_secs(DEFAULT_TIMEOUT))
-        .user_agent("subconverter-rs");
 
-    if let Some(proxy) = &proxy_config.proxy {
-        if !proxy.is_empty() {
-            match Proxy::all(proxy) {
-                Ok(proxy) => {
-                    client_builder = client_builder.proxy(proxy);
-                }
-                Err(e) => {
-                    return Err(HttpError {
-                        message: format!("Failed to set proxy: {}", e),
-                        status: None,
-                    });
-                }
-            }
-        }
-    }
+    let mut client_builder = Client::builder().timeout(Duration::from_secs(DEFAULT_TIMEOUT));
 
-    let client = match client_builder.build() {
-        Ok(client) => client,
-        Err(e) => {
-            return Err(HttpError {
-                message: format!("Failed to build HTTP client: {}", e),
-                status: None,
-            });
-        }
-    };
+    // if let Some(proxy) = &proxy_config.proxy {
+    //     if !proxy.is_empty() {
+    //         match Proxy::all(proxy) {
+    //             Ok(proxy) => {
+    //                 client_builder = client_builder.proxy(proxy);
+    //             }
+    //             Err(e) => {
+    //                 return Err(HttpError {
+    //                     message: format!("Failed to set proxy: {}", e),
+    //                     status: None,
+    //                 });
+    //             }
+    //         }
+    //     }
+    // }
+
+    let client = client_builder.finish();
 
     // Build request with headers if specified
-    let mut request_builder = client.get(url);
+    let mut client_request = client
+        .get(url)
+        .insert_header(("User-Agent", "subconverter-rs"));
     if let Some(custom_headers) = headers {
         for (key, value) in custom_headers {
-            request_builder = request_builder.header(key.to_string(), value);
+            client_request = client_request.insert_header((key.to_string(), value.to_string()));
         }
     }
 
     // Send request and get response
-    let response = match request_builder.send().await {
+    let mut response = match client_request.send().await {
         Ok(resp) => resp,
         Err(e) => {
             return Err(HttpError {
@@ -148,10 +139,10 @@ pub async fn web_get_async(
     }
 
     // Get response body, even for error responses
-    match response.text().await {
+    match response.body().await {
         Ok(body) => Ok(HttpResponse {
             status,
-            body,
+            body: String::from_utf8(body.to_vec()).unwrap(),
             headers: resp_headers,
         }),
         Err(e) => Err(HttpError {
@@ -161,7 +152,8 @@ pub async fn web_get_async(
     }
 }
 
-/// Synchronous version of web_get_async that uses tokio runtime to run the async function
+/// Synchronous version of web_get_async that uses tokio runtime to run the
+/// async function
 ///
 /// This function is provided for compatibility with the existing codebase.
 pub fn web_get(
@@ -189,7 +181,8 @@ pub fn web_get(
 
 /// Asynchronous function that returns only the body content if status is 2xx,
 /// otherwise treats as error
-/// This provides backward compatibility with code expecting only successful responses
+/// This provides backward compatibility with code expecting only successful
+/// responses
 pub async fn web_get_content_async(
     url: &str,
     proxy_config: &ProxyConfig,
