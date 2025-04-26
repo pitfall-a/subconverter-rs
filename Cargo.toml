@@ -70,7 +70,7 @@ console_log = "1.0"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 openssl = { version = "0.10" }
-awc = { version = "3.6.0", features = ["openssl"] }
+awc = { version = "3.6.0", features = ["rustls"] }
 tokio = { version = "1.43.0", features = ["rt", "fs", "sync", "io-util"] }
 
 [dev-dependencies]
