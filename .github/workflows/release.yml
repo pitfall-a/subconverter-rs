@@ -39,10 +39,6 @@ jobs:
             artifact: subconverter-linux-loongarch64
             os: ubuntu-latest
             target: loongarch64-unknown-linux-musl
-          - arch: riscv64
-            artifact: subconverter-linux-riscv64
-            os: ubuntu-latest
-            target: riscv64gc-unknown-linux-musl
     runs-on: ${{ matrix.os }}
     name: Linux ${{ matrix.arch }} Build
     steps:
