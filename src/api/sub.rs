@@ -105,6 +105,9 @@ pub struct SubconverterQuery {
     /// Singbox specific parameters
     #[serde(default)]
     pub singbox: HashMap<String, String>,
+
+    /// Request headers
+    pub request_headers: Option<HashMap<String, String>>,
 }
 
 /// Parse a query string into a HashMap
@@ -469,8 +472,12 @@ pub async fn sub_process(
 
     // // Set managed config prefix from global settings
     // if !global.managed_config_prefix.is_empty() {
-    //     builder = builder.managed_config_prefix(global.managed_config_prefix.clone());
-    // }
+    //     builder =
+    // builder.managed_config_prefix(global.managed_config_prefix.clone()); }
+
+    if let Some(request_headers) = &query.request_headers {
+        builder.request_headers(request_headers.clone());
+    }
 
     // Build and validate configuration
     let config = match builder.build() {

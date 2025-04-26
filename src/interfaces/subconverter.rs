@@ -16,6 +16,7 @@ use crate::utils::file_get_async;
 use crate::utils::http::parse_proxy;
 use crate::utils::http::web_get_async;
 use crate::{Settings, TemplateArgs};
+use case_insensitive_string::CaseInsensitiveString;
 use log::{debug, error, info, warn};
 use std::collections::HashMap;
 
@@ -84,6 +85,8 @@ pub struct SubconverterConfig {
     pub rule_bases: RuleBases,
     /// Template arguments
     pub template_args: Option<TemplateArgs>,
+    /// Request headers
+    pub request_headers: Option<HashMap<String, String>>,
 }
 
 /// Builder for SubconverterConfig
@@ -127,6 +130,7 @@ impl SubconverterConfigBuilder {
                 sub_info: None,
                 rule_bases: RuleBases::default(),
                 template_args: None,
+                request_headers: None,
             },
         }
     }
@@ -488,6 +492,12 @@ impl SubconverterConfigBuilder {
         self
     }
 
+    /// Set request headers
+    pub fn request_headers(&mut self, headers: HashMap<String, String>) -> &mut Self {
+        self.config.request_headers = Some(headers);
+        self
+    }
+
     /// Build the final configuration
     pub fn build(self) -> Result<SubconverterConfig, String> {
         let config = self.config;
@@ -546,9 +556,18 @@ pub async fn parse_subscription(
     url: &str,
     options: ParseOptions,
     group_id: i32,
+    request_headers: &Option<HashMap<String, String>>,
 ) -> Result<Vec<Proxy>, String> {
     // Create a new parse settings instance
     let mut parse_settings = ParseSettings::default();
+
+    if let Some(headers) = request_headers {
+        let mut i_request_headers = HashMap::new();
+        for (key, value) in headers {
+            i_request_headers.insert(CaseInsensitiveString::new(&key), value.clone());
+        }
+        parse_settings.request_header = Some(i_request_headers);
+    }
 
     // Set options from the provided config
     if !options.include_remarks.is_empty() {
@@ -596,7 +615,7 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
         info!("Fetching node data from insert URLs");
         for url in &config.insert_urls {
             debug!("Parsing insert URL: {}", url);
-            match parse_subscription(url, opts.clone(), group_id).await {
+            match parse_subscription(url, opts.clone(), group_id, &config.request_headers).await {
                 Ok(mut parsed_nodes) => {
                     info!("Found {} nodes from insert URL", parsed_nodes.len());
                     insert_nodes.append(&mut parsed_nodes);
@@ -617,7 +636,7 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
     info!("Fetching node data from main URLs");
     for url in &config.urls {
         debug!("Parsing URL: {}", url);
-        match parse_subscription(url, opts.clone(), group_id).await {
+        match parse_subscription(url, opts.clone(), group_id, &config.request_headers).await {
             Ok(mut parsed_nodes) => {
                 info!("Found {} nodes from URL", parsed_nodes.len());
                 nodes.append(&mut parsed_nodes);
@@ -680,13 +699,16 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
                 //             context,
                 //             |ctx| match ctx.eval(script) {
                 //                 Ok(_) => {
-                //                     if let Ok(filter) = ctx.eval::<quickjs::Function>("filter") {
+                //                     if let Ok(filter) =
+                // ctx.eval::<quickjs::Function>("filter") {
                 //                         nodes.retain(|node| {
                 //                             match filter.call1(
                 //                                 &quickjs::Value::Null,
-                //                                 &quickjs::Value::from_serde(node).unwrap(),
+                //
+                // &quickjs::Value::from_serde(node).unwrap(),
                 //                             ) {
-                //                                 Ok(result) => result.as_bool().unwrap_or(false),
+                //                                 Ok(result) =>
+                // result.as_bool().unwrap_or(false),
                 //                                 Err(_) => false,
                 //                             }
                 //                         });
@@ -726,10 +748,10 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
     if config.extra.enable_rule_generator {
         // TODO: Check if we're using custom rulesets or global rulesets
         // if config.ruleset_configs == global.custom_rulesets {
-        //     refresh_rulesets(&config.ruleset_configs, &mut global.rulesets_content).await;
-        //     debug!("Using global ruleset content");
-        //     // Use global ruleset content if it's the same configuration
-        //     ruleset_content = global.rulesets_content.clone();
+        //     refresh_rulesets(&config.ruleset_configs, &mut
+        // global.rulesets_content).await;     debug!("Using global ruleset
+        // content");     // Use global ruleset content if it's the same
+        // configuration     ruleset_content = global.rulesets_content.clone();
 
         // Refresh rulesets with custom configuration
         info!("Refreshing rulesets with custom configuration");
@@ -970,8 +992,9 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
             )
         }
         SubconverterTarget::Auto => {
-            // When target is Auto, we should have decided on a specific target earlier based on user agent
-            // If we still have Auto at this point, default to Clash
+            // When target is Auto, we should have decided on a specific target earlier
+            // based on user agent If we still have Auto at this point, default
+            // to Clash
             info!("Generate target: Auto (defaulting to Clash)");
             let base = config
                 .rule_bases
@@ -1226,7 +1249,8 @@ impl RuleBases {
     /// Check and update rule bases with external configuration paths
     ///
     /// This method checks if paths from external configuration are valid
-    /// (either links or existing files) and updates the corresponding rule bases.
+    /// (either links or existing files) and updates the corresponding rule
+    /// bases.
     pub async fn check_external_bases(
         &mut self,
         ext_conf: &crate::settings::external::ExternalSettings,
@@ -1288,7 +1312,8 @@ impl RuleBases {
         .await;
     }
 
-    /// Check if a path is a link or exists in the base path and update the destination if valid
+    /// Check if a path is a link or exists in the base path and update the
+    /// destination if valid
     async fn check_external_base(path: &str, dest: &mut String, base_path: &str) -> bool {
         if crate::utils::is_link(path)
             || (crate::utils::starts_with(path, base_path) && crate::utils::file_exists(path).await)
