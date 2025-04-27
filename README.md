@@ -61,6 +61,7 @@ The following table shows the support status of different proxy protocols in var
 
 | Protocol \ Rule Type | Clash | SingBox | Surge(2,3,4) | V2Ray | Quantumult | Quantumult X | Loon | Surfboard | Mellow | SIP002/8 | Mixed | TG-like |
 |----------------------|:-----:|:-------:|:------------:|:-----:|:----------:|:------------:|:----:|:---------:|:------:|:--------:|:----------:|:-------:|
+| AnyTLS               | ✅    | ❌      | ❌           | ❌    | ❌         | ❌           | ❌   | ❌        | ❌     | ❌       | ⬇️         | ⬇️      |
 | VLESS                | ✅    | ✅      | ⚠️           | ✅    | ❌         | ⚠️           | ⚠️   | ❌        | ❌     | ❌       | ⬇️         | ⬇️      |
 | Hysteria/2           | ✅    | ✅      | ⚠️           | ❌    | ⚠️         | ⚠️           | ⚠️   | ⚠️        | ⚠️     | ❌       | ⬇️         | ⬇️      |
 | VMess                | ✅    | ✅      | ⚠️           | ✅    | ⚠️         | ⚠️           | ⚠️   | ⚠️        | ⚠️     | ❌       | ✅         | ⬇️      |
