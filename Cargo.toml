@@ -1,6 +1,6 @@
 [package]
 name = "subconverter"
-version = "0.2.27"
+version = "0.2.27-beta.dev.17fbb5c"
 edition = "2021"
 description = "A more powerful utility to convert between proxy subscription format"
 license = "GPL-3.0+"

@@ -10,7 +10,7 @@
         "subscriptionUrl": "Subscription URL",
         "targetFormat": "Target Format",
         "externalConfig": "External Configuration",
-        "saveAsSubscription": "Generate permanent subscription link",
+        "saveAsSubscription": "Generate permanent subscription link (do not save on non-private servers, otherwise the subscription link may be stolen)",
         "convert": "Convert",
         "converting": "Processing...",
         "error": "Error",
@@ -41,7 +41,10 @@
         "shortUrlMessage": " This is your persistent short URL that redirects to the full conversion endpoint.",
         "optionalConfigInfo": "Optional: Select a preset or specify a custom configuration URL",
         "githubStar": "Star on GitHub",
-        "selfHostPrompt": "Star & click deploy to self-host for FREE!"
+        "selfHostPrompt": "Star & click deploy to self-host for FREE!",
+        "reportIssuePrompt": "If the problem persists, please report it by creating a new issue on GitHub:",
+        "createIssueLinkText": "Create Issue",
+        "pasteErrorInfo": "Please paste the error details above into the issue description."
     },
     "DownloadsPage": {
         "title": "Client Applications",
