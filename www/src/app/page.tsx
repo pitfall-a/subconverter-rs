@@ -302,6 +302,19 @@ export default function Home() {
               <h3 className="text-lg font-semibold text-red-800">{t('error')}</h3>
               <p className="text-red-700">{error.error}</p>
               {error.details && <p className="mt-1 text-sm text-red-600">{error.details}</p>}
+              <p className="mt-2 text-sm text-gray-700">
+                {t('reportIssuePrompt')}
+                {' '}
+                <a
+                  href="https://github.com/lonelam/subconverter-rs/issues/new/choose"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  {t('createIssueLinkText')}
+                </a>
+                . {t('pasteErrorInfo')}
+              </p>
             </div>
           )}
 
