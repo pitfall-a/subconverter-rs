@@ -7,7 +7,8 @@ use std::collections::HashSet;
 use super::proxy_node::combined::CombinedProxy;
 
 /// Represents the type of a proxy.
-/// This is the canonical enum used for proxy type identification across the application.
+/// This is the canonical enum used for proxy type identification across the
+/// application.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ProxyType {
     Unknown,
@@ -24,6 +25,7 @@ pub enum ProxyType {
     Hysteria2,
     // new proxy types could be added as enum combined proxy types
     Vless,
+    AnyTls,
 }
 
 /// Converts a `ProxyType` into a human-readable name.
@@ -42,6 +44,7 @@ impl ProxyType {
             ProxyType::Hysteria => "Hysteria",
             ProxyType::Hysteria2 => "Hysteria2",
             ProxyType::Vless => "Vless",
+            ProxyType::AnyTls => "AnyTLS",
             ProxyType::Unknown => "Unknown",
         }
     }
@@ -194,7 +197,10 @@ impl Default for Proxy {
 
 impl Proxy {
     pub fn is_combined_proxy(&self) -> bool {
-        matches!(self.proxy_type, ProxyType::Vless | ProxyType::Shadowsocks)
+        matches!(
+            self.proxy_type,
+            ProxyType::Vless | ProxyType::Shadowsocks | ProxyType::AnyTls
+        )
     }
 
     /// 设置 UDP 支持，如果值已存在则不覆盖
