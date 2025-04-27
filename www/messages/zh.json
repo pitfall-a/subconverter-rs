@@ -10,7 +10,7 @@
         "subscriptionUrl": "订阅链接",
         "targetFormat": "目标格式",
         "externalConfig": "外部配置",
-        "saveAsSubscription": "生成永久订阅链接",
+        "saveAsSubscription": "生成永久订阅链接（请不要在非私有部署的服务器上保存, 否则可能导致订阅链接被盗用）",
         "convert": "转换",
         "converting": "处理中...",
         "error": "错误",

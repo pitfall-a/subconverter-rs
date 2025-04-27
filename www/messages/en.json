@@ -10,7 +10,7 @@
         "subscriptionUrl": "Subscription URL",
         "targetFormat": "Target Format",
         "externalConfig": "External Configuration",
-        "saveAsSubscription": "Generate permanent subscription link",
+        "saveAsSubscription": "Generate permanent subscription link (do not save on non-private servers, otherwise the subscription link may be stolen)",
         "convert": "Convert",
         "converting": "Processing...",
         "error": "Error",
