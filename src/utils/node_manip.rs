@@ -12,13 +12,16 @@ use crate::utils::{
     string::{remove_emoji, trim},
 };
 
+use super::matcher::apply_compiled_rule;
+
 /// Applies a rename configuration to a node
 /// Similar to the C++ nodeRename function
 fn node_rename(node: &mut Proxy, rename_array: &RegexMatchConfigs, _extra: &ExtraSettings) {
     let original_remark = node.remark.clone();
 
     for pattern in rename_array {
-        // Skip script-based patterns since we're not implementing JavaScript support here
+        // Skip script-based patterns since we're not implementing JavaScript support
+        // here
         if !pattern._match.is_empty() {
             let mut real_rule = String::new();
             if apply_matcher(&pattern._match, &mut real_rule, node) && !real_rule.is_empty() {
@@ -41,10 +44,9 @@ fn add_emoji(node: &Proxy, emoji_array: &RegexMatchConfigs, _extra: &ExtraSettin
             continue;
         }
 
-        // Use apply_matcher to handle complex matching rules
-        let mut real_rule = String::new();
-        if apply_matcher(&pattern._match, &mut real_rule, node) {
-            if real_rule.is_empty() || reg_find(&node.remark, &real_rule) {
+        // Use apply_compiled_rule to handle complex matching rules
+        if let Some(compiled_rule) = &pattern.compiled_rule {
+            if apply_compiled_rule(compiled_rule, node) {
                 return format!("{} {}", pattern.replace, node.remark);
             }
         }
