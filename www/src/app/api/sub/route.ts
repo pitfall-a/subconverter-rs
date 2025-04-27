@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     // Normalize the 'url' parameter if it exists
     if (typeof params.url === 'string') {
-        const urls = params.url.split(/\n|\|/).map(u => u.trim()).filter(Boolean);
+        const urls = params.url.split(/\n|\|/).map((u: string) => u.trim()).filter(Boolean);
         params.url = urls.join('|');
     }
 
