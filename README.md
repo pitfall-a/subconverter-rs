@@ -94,7 +94,6 @@ Here are some features planned for future releases:
 - **Gist Publishing**: Automatically upload generated configurations to GitHub Gist.
 - **AnyTLS Support**: Add support for the AnyTLS protocol.
 - **Visual Rule Group Configuration**: Implement a graphical interface for configuring rule groups.
-- **Regex Performance Optimization**: Improve the efficiency of regular expression matching.
 
 ---
 

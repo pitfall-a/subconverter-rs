@@ -117,7 +117,6 @@ cargo build --release --features=web-api
 - **Gist 发布**: 自动将生成的配置上传到 GitHub Gist。
 - **AnyTLS 协议支持**: 添加对 AnyTLS 协议的支持。
 - **可视化规则组配置**: 实现用于配置规则组的图形界面。
-- **正则表达式性能优化**: 提高正则表达式匹配的效率。
 
 * * *
 
