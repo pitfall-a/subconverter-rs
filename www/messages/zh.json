@@ -205,6 +205,11 @@
             "addRule": "添加规则",
             "match": "匹配模式",
             "emoji": "表情符号"
+        },
+        "snippets": {
+            "title": "代码片段",
+            "emojiFileDesc": "编辑默认的表情符号规则文件。",
+            "gistConfDesc": "编辑 Gist 配置文件（如果适用）。"
         }
     },
     "Common": {

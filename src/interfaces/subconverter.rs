@@ -18,6 +18,7 @@ use crate::utils::http::web_get_async;
 use crate::{Settings, TemplateArgs};
 use case_insensitive_string::CaseInsensitiveString;
 use log::{debug, error, info, warn};
+use serde::Serialize;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Default)]
@@ -511,6 +512,18 @@ impl SubconverterConfigBuilder {
     }
 }
 
+/// Represents the status of the Gist upload operation
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "status", content = "url")]
+pub enum UploadStatus {
+    /// Upload was not attempted
+    NotAttempted,
+    /// Upload was successful, contains the Gist raw URL
+    Success(String),
+    /// Upload failed, contains the error message
+    Failure(String),
+}
+
 /// Result of subscription conversion
 #[derive(Debug, Clone)]
 pub struct SubconverterResult {
@@ -518,6 +531,8 @@ pub struct SubconverterResult {
     pub content: String,
     /// Response headers
     pub headers: HashMap<String, String>,
+    /// Status of the Gist upload
+    pub upload_status: UploadStatus,
 }
 
 /// Options for parsing subscriptions
@@ -1019,6 +1034,8 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
         );
     }
 
+    let mut upload_status: UploadStatus = UploadStatus::NotAttempted;
+
     // Upload result if needed
     if config.upload {
         // Determine arguments for upload_gist based on C++ logic
@@ -1066,8 +1083,14 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
         )
         .await
         {
-            Ok(_) => info!("Successfully uploaded result to Gist."),
-            Err(e) => warn!("Failed to upload result to Gist: {}", e),
+            Ok(url) => {
+                info!("Successfully uploaded result to Gist: {}", url);
+                upload_status = UploadStatus::Success(url);
+            }
+            Err(e) => {
+                warn!("Failed to upload result to Gist: {}", e);
+                upload_status = UploadStatus::Failure(e);
+            }
         }
     }
 
@@ -1075,6 +1098,7 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
     Ok(SubconverterResult {
         content: output_content,
         headers: response_headers,
+        upload_status: upload_status,
     })
 }
 

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::constants::regex_black_list::REGEX_BLACK_LIST;
-use crate::interfaces::subconverter::{subconverter, SubconverterConfigBuilder};
+use crate::interfaces::subconverter::{subconverter, SubconverterConfigBuilder, UploadStatus};
 use crate::models::ruleset::RulesetConfigs;
 use crate::models::{ProxyGroupConfigs, RegexMatchConfigs, SubconverterTarget};
 use crate::settings::external::ExternalSettings;
@@ -130,6 +130,13 @@ pub struct SubResponse {
     pub content_type: String,
     pub headers: HashMap<String, String>,
     pub status_code: u16,
+    #[serde(skip_serializing_if = "is_not_attempted")] // Don't include if upload wasn't attempted
+    pub upload_status: UploadStatus,
+}
+
+// Helper function for skip_serializing_if
+fn is_not_attempted(status: &UploadStatus) -> bool {
+    matches!(status, UploadStatus::NotAttempted)
 }
 
 impl SubResponse {
@@ -139,6 +146,7 @@ impl SubResponse {
             content_type,
             headers: HashMap::new(),
             status_code: 200,
+            upload_status: UploadStatus::NotAttempted, // Default to not attempted
         }
     }
 
@@ -148,11 +156,17 @@ impl SubResponse {
             content_type: "text/plain".to_string(),
             headers: HashMap::new(),
             status_code,
+            upload_status: UploadStatus::NotAttempted, // Default to not attempted
         }
     }
 
     pub fn with_headers(mut self, headers: HashMap<String, String>) -> Self {
         self.headers = headers;
+        self
+    }
+
+    pub fn with_upload_status(mut self, status: UploadStatus) -> Self {
+        self.upload_status = status;
         self
     }
 }
@@ -509,7 +523,8 @@ pub async fn sub_process(
 
             debug!("Subconverter completed successfully");
             Ok(SubResponse::ok(result.content, content_type.to_string())
-                .with_headers(result.headers))
+                .with_headers(result.headers)
+                .with_upload_status(result.upload_status))
         }
         Err(e) => {
             error!("Subconverter error: {}", e);

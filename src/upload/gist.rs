@@ -34,14 +34,14 @@ fn build_gist_data(name: &str, content: &str) -> String {
 ///   updating an existing Gist.
 ///
 /// # Returns
-/// * `Ok(())` on success.
+/// * `Ok(String)` on success, containing the Gist raw URL.
 /// * `Err(String)` on failure, containing an error message.
 pub async fn upload_gist(
     name: &str,
     mut path: String,
     mut content: String,
     write_manage_url: bool,
-) -> Result<(), String> {
+) -> Result<String, String> {
     let ini_path = "gistconf.ini";
 
     if !file_exists(ini_path).await {
@@ -50,7 +50,7 @@ pub async fn upload_gist(
     }
 
     let mut ini = IniReader::new();
-    if let Err(e) = ini.parse_file(ini_path) {
+    if let Err(e) = ini.parse_file(ini_path).await {
         let err_msg = format!("Failed to parse gistconf.ini: {}", e);
         log::error!("{}", err_msg);
         return Err(err_msg);
@@ -223,5 +223,5 @@ pub async fn upload_gist(
         return Err(err_msg);
     }
 
-    Ok(())
+    Ok(final_url)
 }

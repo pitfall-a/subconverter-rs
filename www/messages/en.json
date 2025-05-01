@@ -203,6 +203,11 @@
             "addRule": "Add Rule",
             "match": "Match Pattern",
             "emoji": "Emoji"
+        },
+        "snippets": {
+            "title": "Snippets",
+            "emojiFileDesc": "Edit the default emoji rules file.",
+            "gistConfDesc": "Edit the Gist configuration file (if applicable)."
         }
     },
     "Common": {
