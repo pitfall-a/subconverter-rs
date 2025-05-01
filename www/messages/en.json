@@ -203,6 +203,11 @@
             "addRule": "Add Rule",
             "match": "Match Pattern",
             "emoji": "Emoji"
+        },
+        "snippets": {
+            "title": "Snippets",
+            "emojiFileDesc": "Edit the default emoji rules file.",
+            "gistConfDesc": "Edit the Gist configuration file (if applicable)."
         }
     },
     "Common": {
@@ -328,6 +333,10 @@
         "urlWillBeSaved": "This URL will be saved as a short link.",
         "shortUrlMessage": "A short URL has been created.",
         "conversionResultAriaLabel": "Conversion Result",
-        "downloadConfigButton": "Download Config"
+        "downloadConfigButton": "Download Config",
+        "uploadResultLabel": "Upload Result to Gist",
+        "uploadPathLabel": "Upload Gist Path",
+        "uploadPathPlaceholder": "e.g., profiles/my_config.yaml",
+        "uploadPathHelp": "Path on the server to save the converted result (requires server enablement)"
     }
 }

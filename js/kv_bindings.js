@@ -426,6 +426,7 @@ async function wasm_fetch_with_request(url, options) {
 
         // Use the method from options or default to GET
         const method = options && options.method ? options.method : 'GET';
+        const body = options && options.body ? options.body : undefined;
 
         // Use either global fetch (Node.js 18+) or require node-fetch
         let fetchFunc = fetch;
@@ -442,6 +443,7 @@ async function wasm_fetch_with_request(url, options) {
         const response = await fetchFunc(url, {
             method,
             headers,
+            body,
             // Add other options as needed
         });
 

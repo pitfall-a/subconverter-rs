@@ -18,6 +18,7 @@ use crate::utils::http::web_get_async;
 use crate::{Settings, TemplateArgs};
 use case_insensitive_string::CaseInsensitiveString;
 use log::{debug, error, info, warn};
+use serde::Serialize;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Default)]
@@ -511,6 +512,18 @@ impl SubconverterConfigBuilder {
     }
 }
 
+/// Represents the status of the Gist upload operation
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "status", content = "url")]
+pub enum UploadStatus {
+    /// Upload was not attempted
+    NotAttempted,
+    /// Upload was successful, contains the Gist raw URL
+    Success(String),
+    /// Upload failed, contains the error message
+    Failure(String),
+}
+
 /// Result of subscription conversion
 #[derive(Debug, Clone)]
 pub struct SubconverterResult {
@@ -518,6 +531,8 @@ pub struct SubconverterResult {
     pub content: String,
     /// Response headers
     pub headers: HashMap<String, String>,
+    /// Status of the Gist upload
+    pub upload_status: UploadStatus,
 }
 
 /// Options for parsing subscriptions
@@ -1019,11 +1034,63 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
         );
     }
 
+    let mut upload_status: UploadStatus = UploadStatus::NotAttempted;
+
     // Upload result if needed
     if config.upload {
-        if let Some(upload_path) = &config.upload_path {
-            info!("Uploading result to path: {}", upload_path);
-            // Implement upload functionality here
+        // Determine arguments for upload_gist based on C++ logic
+        let (gist_name, write_manage_url) = match &config.target {
+            SubconverterTarget::Clash => ("clash".to_string(), false),
+            SubconverterTarget::ClashR => ("clashr".to_string(), false),
+            SubconverterTarget::Surge(ver) => {
+                let name = format!("surge{}", ver);
+                if config.extra.nodelist {
+                    (format!("{}list", name), true)
+                } else {
+                    (name, true)
+                }
+            }
+            SubconverterTarget::Surfboard => ("surfboard".to_string(), !config.extra.nodelist), /* Only true for config, not list */
+            SubconverterTarget::Mellow => ("mellow".to_string(), !config.extra.nodelist), /* Only true for config, not list */
+            SubconverterTarget::SSSub => ("sssub".to_string(), false),
+            SubconverterTarget::SS => ("ss".to_string(), false),
+            SubconverterTarget::SSR => ("ssr".to_string(), false),
+            SubconverterTarget::V2Ray => ("v2ray".to_string(), false),
+            SubconverterTarget::Trojan => ("trojan".to_string(), false),
+            SubconverterTarget::Mixed => ("sub".to_string(), false), // Corresponds to "sub" in C++
+            SubconverterTarget::Quantumult => ("quan".to_string(), false),
+            SubconverterTarget::QuantumultX => ("quanx".to_string(), false),
+            SubconverterTarget::Loon => ("loon".to_string(), false),
+            SubconverterTarget::SSD => ("ssd".to_string(), false),
+            SubconverterTarget::SingBox => ("singbox".to_string(), false),
+            SubconverterTarget::Auto => ("clash".to_string(), false), /* Defaulting to clash like
+                                                                       * the main logic */
+        };
+
+        // Use filename as path if provided, otherwise use the derived gist_name
+        let gist_path = config.filename.clone().unwrap_or_else(|| gist_name.clone());
+
+        info!(
+            "Attempting to upload result to Gist: name='{}', path='{}', write_manage_url={}",
+            gist_name, gist_path, write_manage_url
+        );
+
+        match crate::upload::gist::upload_gist(
+            &gist_name,
+            gist_path,
+            output_content.clone(), // Clone content for upload
+            write_manage_url,
+        )
+        .await
+        {
+            Ok(url) => {
+                info!("Successfully uploaded result to Gist: {}", url);
+                upload_status = UploadStatus::Success(url);
+            }
+            Err(e) => {
+                warn!("Failed to upload result to Gist: {}", e);
+                upload_status = UploadStatus::Failure(e);
+            }
         }
     }
 
@@ -1031,6 +1098,7 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
     Ok(SubconverterResult {
         content: output_content,
         headers: response_headers,
+        upload_status: upload_status,
     })
 }
 

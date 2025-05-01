@@ -772,6 +772,32 @@ export default function ConvertPage() {
                                 className={getInputClass("token")}
                             />
                         </div>
+                        {/* Added Upload Fields */}
+                        <div className="flex items-center space-x-2">
+                            <input
+                                id="upload"
+                                name="upload"
+                                type="checkbox"
+                                checked={formData.upload}
+                                onChange={handleInputChange}
+                                className={checkboxClass}
+                            />
+                            <FieldLabel htmlFor="upload" fieldName="upload">{t('uploadResultLabel')}</FieldLabel>
+                        </div>
+                        <div>
+                            <FieldLabel htmlFor="upload_path" fieldName="upload_path">{t('uploadPathLabel')}</FieldLabel>
+                            <input
+                                type="text"
+                                id="upload_path"
+                                name="upload_path"
+                                value={formData.upload_path ?? ''}
+                                onChange={handleInputChange}
+                                className={getInputClass("upload_path")}
+                                disabled={!formData.upload}
+                                placeholder={t('uploadPathPlaceholder')}
+                            />
+                            <p className="mt-1 text-xs text-gray-500">{t('uploadPathHelp')}</p>
+                        </div>
                     </div>
                 </fieldset>
 
