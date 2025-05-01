@@ -491,7 +491,7 @@ pub async fn web_post_async(
     let mut opts = RequestInit::new();
     opts.set_method("POST");
     opts.set_mode(RequestMode::Cors);
-    opts.set_body(Some(&JsValue::from_str(&data)));
+    opts.set_body(&JsValue::from_str(&data));
 
     // Create headers object
     let request_headers = web_sys::Headers::new().map_err(|e| HttpError {
@@ -516,7 +516,7 @@ pub async fn web_post_async(
                 })?;
         }
     }
-    opts.set_headers(Some(&request_headers));
+    opts.set_headers(&request_headers);
 
     // Try getting window object to determine environment
     let window_available = web_sys::window().is_some();
@@ -698,7 +698,7 @@ pub async fn web_patch_async(
     let mut opts = RequestInit::new();
     opts.set_method("PATCH");
     opts.set_mode(RequestMode::Cors);
-    opts.set_body(Some(&JsValue::from_str(&data)));
+    opts.set_body(&JsValue::from_str(&data));
 
     // Create headers object
     let request_headers = web_sys::Headers::new().map_err(|e| HttpError {
@@ -723,7 +723,7 @@ pub async fn web_patch_async(
                 })?;
         }
     }
-    opts.set_headers(Some(&request_headers));
+    opts.set_headers(&request_headers);
 
     // Try getting window object to determine environment
     let window_available = web_sys::window().is_some();
