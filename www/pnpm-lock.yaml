@@ -48,8 +48,13 @@ importers:
         specifier: ^19.1.0
         version: 19.1.0(react@19.1.0)
       subconverter-wasm:
+<<<<<<< HEAD
         specifier: 0.2.28
         version: 0.2.28
+=======
+        specifier: 0.2.27-beta.dev.f9512e2
+        version: 0.2.27-beta.dev.f9512e2
+>>>>>>> 40224c5 (Bump version to 0.2.27-beta.dev.f9512e2 for beta build)
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.1
@@ -6425,7 +6430,11 @@ snapshots:
       client-only: 0.0.1
       react: 19.1.0
 
+<<<<<<< HEAD
   subconverter-wasm@0.2.28:
+=======
+  subconverter-wasm@0.2.27-beta.dev.f9512e2:
+>>>>>>> 40224c5 (Bump version to 0.2.27-beta.dev.f9512e2 for beta build)
     dependencies:
       '@netlify/blobs': 8.2.0
       '@vercel/kv': 3.0.0

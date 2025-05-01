@@ -39,7 +39,7 @@
     "tailwindcss": "^4.1.4",
     "typescript": "^5.8.3",
     "url": "^0.11.4",
-    "subconverter-wasm": "0.2.27-beta.dev.17fbb5c"
+    "subconverter-wasm": "0.2.27-beta.dev.f9512e2"
   },
   "engines": {
     "node": ">=20.0.0"
