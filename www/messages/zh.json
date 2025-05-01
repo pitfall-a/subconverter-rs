@@ -331,6 +331,10 @@
         "urlWillBeSaved": "此URL将被保存为短链接。",
         "shortUrlMessage": "已创建短链接。",
         "conversionResultAriaLabel": "转换结果",
-        "downloadConfigButton": "下载配置"
+        "downloadConfigButton": "下载配置",
+        "uploadResultLabel": "上传结果到Gist",
+        "uploadPathLabel": "上传Gist路径",
+        "uploadPathPlaceholder": "例如：profiles/my_config.yaml",
+        "uploadPathHelp": "在服务器上保存转换结果的路径（需要服务器启用）"
     }
 }
