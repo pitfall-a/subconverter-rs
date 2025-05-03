@@ -4,12 +4,15 @@
 
 use std::collections::HashSet;
 
+use rquickjs::{Ctx, IntoJs};
+use serde::{Deserialize, Serialize};
+
 use super::proxy_node::combined::CombinedProxy;
 
 /// Represents the type of a proxy.
 /// This is the canonical enum used for proxy type identification across the
 /// application.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ProxyType {
     Unknown,
     Shadowsocks,
@@ -50,10 +53,12 @@ impl ProxyType {
     }
 }
 
-/// Represents a proxy configuration.
-#[derive(Debug, Clone)]
+/// Represents a proxy configuration. Serialized for JavaScripts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
 pub struct Proxy {
     pub proxy_type: ProxyType,
+    #[serde(flatten)]
     pub combined_proxy: Option<CombinedProxy>,
     pub id: u32,
     pub group_id: i32,
@@ -192,6 +197,20 @@ impl Default for Proxy {
             alpn: HashSet::new(),
             cwnd: 0,
         }
+    }
+}
+
+impl<'js> IntoJs<'js> for Proxy {
+    fn into_js(self, ctx: &Ctx<'js>) -> Result<rquickjs::Value<'js>, rquickjs::Error> {
+        let value =
+            ctx.json_parse(
+                serde_json::to_string(&self).map_err(|e| rquickjs::Error::IntoJs {
+                    from: "Proxy",
+                    to: "Json",
+                    message: Some(e.to_string()),
+                })?,
+            )?;
+        Ok(value)
     }
 }
 

@@ -13,3 +13,4 @@ wasm-test/.rspack-cache
 /.cursorrules
 node_modules
 /bin
+.vercel

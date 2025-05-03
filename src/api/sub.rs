@@ -474,14 +474,15 @@ pub async fn sub_process(
     builder.filename(query.filename.clone());
     builder.upload(query.upload.unwrap_or_default());
 
-    // // Process filter script
-    // if let Some(filter) = &query.filter {
-    //     builder = builder.filter_script(Some(filter.clone()));
-    // }
+    // Process filter script
+    let filter = query.filter.unwrap_or(global.filter_script.clone());
+    if !filter.is_empty() {
+        builder.filter_script(Some(filter));
+    }
 
     // // Process device ID
     // if let Some(dev_id) = &query.dev_id {
-    //     builder = builder.device_id(Some(dev_id.clone()));
+    //     builder.device_id(Some(dev_id.clone()));
     // }
 
     // // Set managed config prefix from global settings

@@ -1,9 +1,12 @@
+use std::str::FromStr;
+
+use rquickjs::{function::Args, Context, Function, IntoJs, Runtime};
+
 use crate::Settings;
 
-use super::RegexMatchConfigs;
+use super::{Proxy, RegexMatchConfigs};
 
 /// Settings for subscription export operations
-#[derive(Debug, Clone)]
 pub struct ExtraSettings {
     /// Whether to enable the rule generator
     pub enable_rule_generator: bool,
@@ -54,7 +57,40 @@ pub struct ExtraSettings {
     /// Whether the export is authorized
     pub authorized: bool,
     /// JavaScript runtime context (not implemented in Rust version)
-    pub js_context: Option<()>,
+    pub js_context: Option<Context>,
+    /// JavaScript runtime
+    pub js_runtime: Option<Runtime>,
+}
+
+impl std::fmt::Debug for ExtraSettings {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.debug_struct("ExtraSettings")
+            .field("enable_rule_generator", &self.enable_rule_generator)
+            .field("overwrite_original_rules", &self.overwrite_original_rules)
+            .field("rename_array", &self.rename_array)
+            .field("emoji_array", &self.emoji_array)
+            .field("add_emoji", &self.add_emoji)
+            .field("remove_emoji", &self.remove_emoji)
+            .field("append_proxy_type", &self.append_proxy_type)
+            .field("nodelist", &self.nodelist)
+            .field("sort_flag", &self.sort_flag)
+            .field("filter_deprecated", &self.filter_deprecated)
+            .field("clash_new_field_name", &self.clash_new_field_name)
+            .field("clash_script", &self.clash_script)
+            .field("surge_ssr_path", &self.surge_ssr_path)
+            .field("managed_config_prefix", &self.managed_config_prefix)
+            .field("quanx_dev_id", &self.quanx_dev_id)
+            .field("udp", &self.udp)
+            .field("tfo", &self.tfo)
+            .field("skip_cert_verify", &self.skip_cert_verify)
+            .field("tls13", &self.tls13)
+            .field("clash_classical_ruleset", &self.clash_classical_ruleset)
+            .field("sort_script", &self.sort_script)
+            .field("clash_proxies_style", &self.clash_proxies_style)
+            .field("clash_proxy_groups_style", &self.clash_proxy_groups_style)
+            .field("authorized", &self.authorized)
+            .finish()
+    }
 }
 
 impl Default for ExtraSettings {
@@ -95,6 +131,78 @@ impl Default for ExtraSettings {
             },
             authorized: false,
             js_context: None,
+            js_runtime: None,
+        }
+    }
+}
+
+impl ExtraSettings {
+    fn init_js_context(&mut self) {
+        if self.js_runtime.is_none() {
+            self.js_runtime = Some(Runtime::new().unwrap());
+            self.js_context = Some(Context::full(&self.js_runtime.as_ref().unwrap()).unwrap());
+        }
+    }
+
+    pub fn eval_filter_function(
+        &mut self,
+        nodes: &mut Vec<Proxy>,
+        source_str: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.init_js_context();
+        if let Some(context) = &mut self.js_context {
+            let mut error_thrown = None;
+            context.with(|ctx| {
+                match ctx.eval(source_str) {
+                    Ok(value) => value,
+                    Err(e) => {
+                        match e {
+                            rquickjs::Error::Exception => {
+                                log::error!(
+                                    "JavaScript eval throw exception: {}",
+                                    ctx.catch()
+                                        .try_into_string()
+                                        .unwrap()
+                                        .to_string()
+                                        .unwrap_or_default()
+                                );
+                            }
+                            _ => {
+                                log::error!("JavaScript eval error: {}", e);
+                            }
+                        }
+                        error_thrown = Some(e);
+                        return;
+                    }
+                };
+                let filter_evaluated: rquickjs::Function =
+                    match ctx.globals().get::<_, rquickjs::Function>("filter") {
+                        Ok(value) => value,
+                        Err(e) => {
+                            log::error!("JavaScript eval get function error: {}", e);
+                            return;
+                        }
+                    };
+
+                nodes.retain_mut(|node| {
+                    match filter_evaluated.call::<(Proxy,), bool>((node.clone(),)) {
+                        Ok(value) => value,
+                        Err(e) => {
+                            log::error!("JavaScript eval call function error: {}", e);
+                            false
+                        }
+                    }
+                });
+            });
+            match error_thrown {
+                Some(e) => Err(e.into()),
+                None => {
+                    log::info!("Filter function evaluated successfully");
+                    Ok(())
+                }
+            }
+        } else {
+            Err("JavaScript context not initialized".into())
         }
     }
 }

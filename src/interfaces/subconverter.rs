@@ -36,7 +36,7 @@ pub struct RuleBases {
 }
 
 /// Configuration for subconverter
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct SubconverterConfig {
     /// Target conversion format
     pub target: SubconverterTarget,
@@ -91,7 +91,7 @@ pub struct SubconverterConfig {
 }
 
 /// Builder for SubconverterConfig
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct SubconverterConfigBuilder {
     config: SubconverterConfig,
 }
@@ -606,7 +606,7 @@ pub async fn parse_subscription(
 }
 
 /// Process a subscription conversion request
-pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResult, String> {
+pub async fn subconverter(mut config: SubconverterConfig) -> Result<SubconverterResult, String> {
     let mut response_headers = HashMap::new();
     let mut nodes = Vec::new();
     let global = Settings::current();
@@ -701,46 +701,25 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
     }
 
     // Apply filter script if available
-    if let Some(_script) = &config.filter_script {
-        info!("Applying filter script");
-        if config.authorized {
-            #[cfg(feature = "js_runtime")]
-            {
-                // Run filter script in JavaScript context
-                // if let Some(runtime) = &config.extra.js_runtime {
-                //     if let Some(context) = &config.extra.js_context {
-                //         script_safe_runner(
-                //             runtime,
-                //             context,
-                //             |ctx| match ctx.eval(script) {
-                //                 Ok(_) => {
-                //                     if let Ok(filter) =
-                // ctx.eval::<quickjs::Function>("filter") {
-                //                         nodes.retain(|node| {
-                //                             match filter.call1(
-                //                                 &quickjs::Value::Null,
-                //
-                // &quickjs::Value::from_serde(node).unwrap(),
-                //                             ) {
-                //                                 Ok(result) =>
-                // result.as_bool().unwrap_or(false),
-                //                                 Err(_) => false,
-                //                             }
-                //                         });
-                //                     }
-                //                 }
-                //                 Err(e) => {
-                //                     script_print_stack(ctx);
-                //                 }
-                //             },
-                //             global.script_clean_context,
-                //         );
-                //     }
-                // }
-            }
-            #[cfg(not(feature = "js_runtime"))]
-            {
-                warn!("JavaScript runtime feature not enabled, skipping filter script");
+    if global.enable_filter {
+        if let Some(_script) = &config.filter_script {
+            if !_script.is_empty() {
+                info!("Applying filter script");
+                if _script.starts_with("path:") {
+                    let import_script = file_get_async(&_script[5..], None)
+                        .await
+                        .map_err(|e| e.to_string())?;
+                    config
+                        .extra
+                        .eval_filter_function(&mut nodes, &import_script)
+                        .map_err(|e| e.to_string())?;
+                } else {
+                    config
+                        .extra
+                        .eval_filter_function(&mut nodes, &_script)
+                        .map_err(|e| e.to_string())?;
+                }
+                info!("Filter script applied successfully");
             }
         }
     }
@@ -792,7 +771,7 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
                 &mut ruleset_content,
                 &config.proxy_groups,
                 false,
-                &mut config.extra.clone(),
+                &mut config.extra,
             )
         }
         SubconverterTarget::ClashR => {
@@ -807,7 +786,7 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
                 &mut ruleset_content,
                 &config.proxy_groups,
                 true,
-                &mut config.extra.clone(),
+                &mut config.extra,
             )
         }
         SubconverterTarget::Surge(ver) => {
@@ -822,7 +801,7 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
                 &mut ruleset_content,
                 &config.proxy_groups,
                 *ver,
-                &mut config.extra.clone(),
+                &mut config.extra,
             )
             .await;
 
@@ -863,7 +842,7 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
                 &mut ruleset_content,
                 &config.proxy_groups,
                 -3, // Special version for Surfboard
-                &mut config.extra.clone(),
+                &mut config.extra,
             )
             .await;
 
@@ -902,7 +881,7 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
                 &base,
                 &mut ruleset_content,
                 &config.proxy_groups,
-                &mut config.extra.clone(),
+                &mut config.extra,
             )
             .await
         }
@@ -912,31 +891,31 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
                 .rule_bases
                 .get_base_content(&config.target, config.template_args.as_ref())
                 .await;
-            proxy_to_ss_sub(&base, &mut nodes, &mut config.extra.clone())
+            proxy_to_ss_sub(&base, &mut nodes, &mut config.extra)
         }
         SubconverterTarget::SS => {
             info!("Generate target: SS");
-            proxy_to_single(&mut nodes, ProxyUriTypes::SS, &mut config.extra.clone())
+            proxy_to_single(&mut nodes, ProxyUriTypes::SS, &mut config.extra)
         }
         SubconverterTarget::SSR => {
             info!("Generate target: SSR");
             proxy_to_single(
                 &mut nodes,
                 ProxyUriTypes::SSR | ProxyUriTypes::SS,
-                &mut config.extra.clone(),
+                &mut config.extra,
             )
         }
         SubconverterTarget::V2Ray => {
             info!("Generate target: V2Ray");
-            proxy_to_single(&mut nodes, ProxyUriTypes::VMESS, &mut config.extra.clone())
+            proxy_to_single(&mut nodes, ProxyUriTypes::VMESS, &mut config.extra)
         }
         SubconverterTarget::Trojan => {
             info!("Generate target: Trojan");
-            proxy_to_single(&mut nodes, ProxyUriTypes::TROJAN, &mut config.extra.clone())
+            proxy_to_single(&mut nodes, ProxyUriTypes::TROJAN, &mut config.extra)
         }
         SubconverterTarget::Mixed => {
             info!("Generate target: Mixed");
-            proxy_to_single(&mut nodes, ProxyUriTypes::MIXED, &mut config.extra.clone())
+            proxy_to_single(&mut nodes, ProxyUriTypes::MIXED, &mut config.extra)
         }
         SubconverterTarget::Quantumult => {
             info!("Generate target: Quantumult");
@@ -949,7 +928,7 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
                 &base,
                 &mut ruleset_content,
                 &config.proxy_groups,
-                &mut config.extra.clone(),
+                &mut config.extra,
             )
             .await
         }
@@ -964,7 +943,7 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
                 &base,
                 &mut ruleset_content,
                 &config.proxy_groups,
-                &mut config.extra.clone(),
+                &mut config.extra,
             )
             .await
         }
@@ -979,7 +958,7 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
                 &base,
                 &mut ruleset_content,
                 &config.proxy_groups,
-                &mut config.extra.clone(),
+                &mut config.extra,
             )
             .await
         }
@@ -989,7 +968,7 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
                 &mut nodes,
                 &config.group_name.as_deref().unwrap_or(""),
                 &config.sub_info.as_deref().unwrap_or(""),
-                &mut config.extra.clone(),
+                &mut config.extra,
             )
         }
         SubconverterTarget::SingBox => {
@@ -1003,7 +982,7 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
                 &base,
                 &mut ruleset_content,
                 &config.proxy_groups,
-                &mut config.extra.clone(),
+                &mut config.extra,
             )
         }
         SubconverterTarget::Auto => {
@@ -1021,7 +1000,7 @@ pub async fn subconverter(config: SubconverterConfig) -> Result<SubconverterResu
                 &mut ruleset_content,
                 &config.proxy_groups,
                 false,
-                &mut config.extra.clone(),
+                &mut config.extra,
             )
         }
     };
