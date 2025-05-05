@@ -298,9 +298,7 @@ pub async fn sub_process(
     builder.skip_cert_verify(query.scv.or(global.skip_cert_verify));
     builder.tls13(query.tls13.or(global.tls13_flag));
     builder.sort(query.sort.unwrap_or(global.enable_sort));
-    if let Some(script) = &query.sort_script {
-        builder.sort_script(script.clone());
-    }
+    builder.sort_script(query.sort_script.unwrap_or(global.sort_script.clone()));
 
     builder.filter_deprecated(query.fdn.unwrap_or(global.filter_deprecated));
     builder.clash_new_field_name(query.new_name.unwrap_or(global.clash_use_new_field));
