@@ -1,10 +1,10 @@
-use std::str::FromStr;
+use std::{cmp::Ordering, str::FromStr};
 
 use rquickjs::{function::Args, Context, Function, IntoJs, Runtime};
 
-use crate::Settings;
+use crate::{utils::file_get_async, Settings};
 
-use super::{Proxy, RegexMatchConfigs};
+use super::{Proxy, ProxyType, RegexMatchConfigs};
 
 /// Settings for subscription export operations
 pub struct ExtraSettings {
@@ -140,7 +140,7 @@ impl ExtraSettings {
     fn init_js_context(&mut self) {
         if self.js_runtime.is_none() {
             self.js_runtime = Some(Runtime::new().unwrap());
-            self.js_context = Some(Context::full(&self.js_runtime.as_ref().unwrap()).unwrap());
+            self.js_context = Some(Context::base(&self.js_runtime.as_ref().unwrap()).unwrap());
         }
     }
 
@@ -153,8 +153,8 @@ impl ExtraSettings {
         if let Some(context) = &mut self.js_context {
             let mut error_thrown = None;
             context.with(|ctx| {
-                match ctx.eval(source_str) {
-                    Ok(value) => value,
+                match ctx.eval::<(), &str>(source_str) {
+                    Ok(_) => (),
                     Err(e) => {
                         match e {
                             rquickjs::Error::Exception => {
@@ -204,5 +204,78 @@ impl ExtraSettings {
         } else {
             Err("JavaScript context not initialized".into())
         }
+    }
+
+    /// Sorts nodes by a specified criterion
+    pub async fn eval_sort_nodes(
+        &mut self,
+        nodes: &mut Vec<Proxy>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if !self.sort_script.is_empty() {
+            let sort_script;
+            if self.sort_script.starts_with("path:") {
+                sort_script = file_get_async(&self.sort_script[5..], None).await?;
+            } else {
+                sort_script = self.sort_script.clone();
+            }
+            self.init_js_context();
+            let mut error_thrown = None;
+            if let Some(context) = &mut self.js_context {
+                context.with(|ctx| {
+                    match ctx.eval::<(), &str>(&sort_script) {
+                        Ok(_) => (),
+                        Err(e) => match e {
+                            rquickjs::Error::Exception => {
+                                error_thrown = Some(e);
+                                return;
+                            }
+                            _ => {
+                                error_thrown = Some(e);
+                                return;
+                            }
+                        },
+                    }
+                    let compare = match ctx.globals().get::<_, rquickjs::Function>("compare") {
+                        Ok(value) => value,
+                        Err(e) => {
+                            log::error!("JavaScript eval get function error: {}", e);
+                            return;
+                        }
+                    };
+                    nodes.sort_by(|a, b| {
+                        match compare.call::<(Proxy, Proxy), i32>((a.clone(), b.clone())) {
+                            Ok(value) => {
+                                if value > 0 {
+                                    Ordering::Greater
+                                } else if value < 0 {
+                                    Ordering::Less
+                                } else {
+                                    Ordering::Equal
+                                }
+                            }
+                            Err(e) => {
+                                log::error!("JavaScript eval call function error: {}", e);
+                                return Ordering::Equal;
+                            }
+                        }
+                    });
+                });
+            }
+            if let Some(e) = error_thrown {
+                return Err(e.into());
+            }
+        } else {
+            // Default sort by remark
+            nodes.sort_by(|a, b| {
+                if a.proxy_type == ProxyType::Unknown {
+                    return Ordering::Greater;
+                }
+                if b.proxy_type == ProxyType::Unknown {
+                    return Ordering::Less;
+                }
+                a.remark.cmp(&b.remark)
+            });
+        }
+        Ok(())
     }
 }

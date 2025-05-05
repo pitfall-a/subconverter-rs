@@ -55,29 +55,12 @@ fn add_emoji(node: &Proxy, emoji_array: &RegexMatchConfigs, _extra: &ExtraSettin
     node.remark.clone()
 }
 
-/// Sorts nodes by a specified criterion
-fn sort_nodes(nodes: &mut Vec<Proxy>, _sort_script: &str) {
-    // Skip script-based sorting since we're not implementing JavaScript support
-    // Default sort by remark
-    nodes.sort_by(|a, b| {
-        if a.proxy_type == ProxyType::Unknown {
-            return Ordering::Greater;
-        }
-        if b.proxy_type == ProxyType::Unknown {
-            return Ordering::Less;
-        }
-        a.remark.cmp(&b.remark)
-    });
-}
-
 /// Preprocesses nodes before conversion
 /// Based on the C++ preprocessNodes function
-pub fn preprocess_nodes(
+pub async fn preprocess_nodes(
     nodes: &mut Vec<Proxy>,
-    extra: &ExtraSettings,
-    rename_patterns: &RegexMatchConfigs,
-    emoji_patterns: &RegexMatchConfigs,
-) {
+    extra: &mut ExtraSettings,
+) -> Result<(), Box<dyn std::error::Error>> {
     // Process each node
     for node in nodes.iter_mut() {
         // Remove emoji if needed
@@ -86,21 +69,22 @@ pub fn preprocess_nodes(
         }
 
         // Apply rename patterns
-        node_rename(node, rename_patterns, extra);
+        node_rename(node, &extra.rename_array, extra);
 
         // Add emoji if needed
         if extra.add_emoji {
-            node.remark = add_emoji(node, emoji_patterns, extra);
+            node.remark = add_emoji(node, &extra.emoji_array, extra);
         }
     }
 
     // Sort nodes if needed
-    if extra.sort_flag {
+    if extra.sort_flag && extra.authorized {
         info!("Sorting {} nodes", nodes.len());
-        sort_nodes(nodes, &extra.sort_script);
+        extra.eval_sort_nodes(nodes).await?;
     }
 
     debug!("Node preprocessing completed for {} nodes", nodes.len());
+    Ok(())
 }
 
 /// Appends proxy type to node remark

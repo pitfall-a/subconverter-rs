@@ -701,7 +701,7 @@ pub async fn subconverter(mut config: SubconverterConfig) -> Result<Subconverter
     }
 
     // Apply filter script if available
-    if global.enable_filter {
+    if global.enable_filter && config.extra.authorized {
         if let Some(_script) = &config.filter_script {
             if !_script.is_empty() {
                 info!("Applying filter script");
@@ -725,12 +725,9 @@ pub async fn subconverter(mut config: SubconverterConfig) -> Result<Subconverter
     }
 
     // Process nodes (rename, emoji, sort, etc.)
-    preprocess_nodes(
-        &mut nodes,
-        &config.extra,
-        &config.extra.rename_array,
-        &config.extra.emoji_array,
-    );
+    preprocess_nodes(&mut nodes, &mut config.extra)
+        .await
+        .map_err(|e| e.to_string())?;
 
     // Pass subscription info if provided
     if let Some(sub_info) = &config.sub_info {
@@ -1082,14 +1079,12 @@ pub async fn subconverter(mut config: SubconverterConfig) -> Result<Subconverter
 }
 
 /// Preprocess nodes before conversion
-pub fn preprocess_nodes(
+pub async fn preprocess_nodes(
     nodes: &mut Vec<Proxy>,
-    extra: &ExtraSettings,
-    rename_patterns: &Vec<RegexMatchConfig>,
-    emoji_patterns: &Vec<RegexMatchConfig>,
-) {
+    extra: &mut ExtraSettings,
+) -> Result<(), Box<dyn std::error::Error>> {
     // Call the implementation in utils/node_manip
-    crate::utils::preprocess_nodes(nodes, extra, rename_patterns, emoji_patterns);
+    crate::utils::preprocess_nodes(nodes, extra).await
 }
 
 /// Prepend proxy direct ruleset to ruleset content
