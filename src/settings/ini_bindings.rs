@@ -157,15 +157,11 @@ impl FromIniWithDelimiter<RegexMatchConfigs> for RegexMatchConfigs {
         let mut confs = Vec::new();
 
         for x in arr {
-            let mut conf = RegexMatchConfig::new(String::new(), String::new());
+            let mut conf = RegexMatchConfig::new(String::new(), String::new(), String::new());
 
             // Handle script case
             if starts_with(x, "script:") {
-                // Note: script is commented out in the original RegexMatchConfig struct
-                // conf.script = x[7..].to_string();
-                // For now, use _match field to store script content
-                conf._match = x[7..].to_string();
-                conf.replace = "script".to_string();
+                conf.script = x[7..].to_string();
                 confs.push(conf);
                 continue;
             }

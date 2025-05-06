@@ -16,13 +16,24 @@ use super::matcher::apply_compiled_rule;
 
 /// Applies a rename configuration to a node
 /// Similar to the C++ nodeRename function
-fn node_rename(node: &mut Proxy, rename_array: &RegexMatchConfigs, _extra: &ExtraSettings) {
+async fn node_rename(node: &mut Proxy, extra: &mut ExtraSettings) {
+    extra.init_js_context();
+    let rename_array = &extra.rename_array;
     let original_remark = node.remark.clone();
-
     for pattern in rename_array {
-        // Skip script-based patterns since we're not implementing JavaScript support
-        // here
-        if !pattern._match.is_empty() {
+        if !pattern.script.is_empty() {
+            match extra
+                .eval_get_rename_node_remark(node, pattern.script.clone())
+                .await
+            {
+                Ok(new_remark) => {
+                    node.remark = new_remark;
+                }
+                Err(e) => {
+                    log::error!("Error renaming node: {}", e);
+                }
+            }
+        } else if !pattern._match.is_empty() {
             let mut real_rule = String::new();
             if apply_matcher(&pattern._match, &mut real_rule, node) && !real_rule.is_empty() {
                 node.remark = reg_replace(&node.remark, &real_rule, &pattern.replace, true, false);
@@ -69,7 +80,7 @@ pub async fn preprocess_nodes(
         }
 
         // Apply rename patterns
-        node_rename(node, &extra.rename_array, extra);
+        node_rename(node, extra).await;
 
         // Add emoji if needed
         if extra.add_emoji {

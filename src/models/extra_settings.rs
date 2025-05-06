@@ -4,7 +4,7 @@ use rquickjs::{function::Args, Context, Function, IntoJs, Runtime};
 
 use crate::{utils::file_get_async, Settings};
 
-use super::{Proxy, ProxyType, RegexMatchConfigs};
+use super::{Proxy, ProxyType, RegexMatchConfig, RegexMatchConfigs};
 
 /// Settings for subscription export operations
 pub struct ExtraSettings {
@@ -137,7 +137,7 @@ impl Default for ExtraSettings {
 }
 
 impl ExtraSettings {
-    fn init_js_context(&mut self) {
+    pub fn init_js_context(&mut self) {
         if self.js_runtime.is_none() {
             self.js_runtime = Some(Runtime::new().unwrap());
             self.js_context = Some(Context::base(&self.js_runtime.as_ref().unwrap()).unwrap());
@@ -277,5 +277,51 @@ impl ExtraSettings {
             });
         }
         Ok(())
+    }
+
+    pub async fn eval_get_rename_node_remark(
+        &self,
+        node: &Proxy,
+        match_script: String,
+    ) -> Result<String, Box<dyn std::error::Error>> {
+        let mut node_name = String::new();
+        if !match_script.is_empty() {
+            let mut error_thrown = None;
+            if let Some(context) = &self.js_context {
+                context.with(|ctx| {
+                    match ctx.eval::<(), &str>(&match_script) {
+                        Ok(_) => (),
+                        Err(e) => {
+                            error_thrown = Some(e);
+                            return;
+                        }
+                    }
+                    let rename = match ctx.globals().get::<_, rquickjs::Function>("rename") {
+                        Ok(value) => value,
+                        Err(e) => {
+                            log::error!("JavaScript eval get function error: {}", e);
+                            error_thrown = Some(e);
+                            return;
+                        }
+                    };
+                    match rename.call::<(Proxy,), String>((node.clone(),)) {
+                        Ok(value) => {
+                            if !value.is_empty() {
+                                node_name = value;
+                            }
+                        }
+                        Err(e) => {
+                            log::error!("JavaScript eval call function error: {}", e);
+                            error_thrown = Some(e);
+                            return;
+                        }
+                    }
+                })
+            }
+            if let Some(e) = error_thrown {
+                return Err(e.into());
+            }
+        }
+        Ok(node_name)
     }
 }

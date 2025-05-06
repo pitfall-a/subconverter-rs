@@ -14,7 +14,7 @@ pub struct RegexMatchConfig {
     #[serde(rename = "match")]
     pub _match: String,
     pub replace: String,
-    // pub script: String,
+    pub script: String,
 
     // Non-serialized field to hold the compiled rule
     #[serde(skip)]
@@ -25,10 +25,11 @@ pub struct RegexMatchConfig {
 }
 
 impl RegexMatchConfig {
-    pub fn new(_match: String, replace: String) -> Self {
+    pub fn new(_match: String, replace: String, script: String) -> Self {
         let mut config = Self {
             _match,
             replace,
+            script,
             compiled_rule: None,
             compiled_regex_for_replace: None,
         };
@@ -36,6 +37,7 @@ impl RegexMatchConfig {
         config.compile();
         config
     }
+
     /// Compiles the regex pattern in the `_match` field.
     /// This should be called after deserialization or creation.
     pub fn compile(&mut self) {
