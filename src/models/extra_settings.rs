@@ -324,4 +324,49 @@ impl ExtraSettings {
         }
         Ok(node_name)
     }
+    pub async fn eval_get_emoji_node_remark(
+        &self,
+        node: &Proxy,
+        match_script: String,
+    ) -> Result<String, Box<dyn std::error::Error>> {
+        let mut node_emoji = String::new();
+        if !match_script.is_empty() {
+            let mut error_thrown = None;
+            if let Some(context) = &self.js_context {
+                context.with(|ctx| {
+                    match ctx.eval::<(), &str>(&match_script) {
+                        Ok(_) => (),
+                        Err(e) => {
+                            error_thrown = Some(e);
+                            return;
+                        }
+                    }
+                    let get_emoji = match ctx.globals().get::<_, rquickjs::Function>("getEmoji") {
+                        Ok(value) => value,
+                        Err(e) => {
+                            log::error!("JavaScript eval get function error: {}", e);
+                            error_thrown = Some(e);
+                            return;
+                        }
+                    };
+                    match get_emoji.call::<(Proxy,), String>((node.clone(),)) {
+                        Ok(value) => {
+                            if !value.is_empty() {
+                                node_emoji = value;
+                            }
+                        }
+                        Err(e) => {
+                            log::error!("JavaScript eval call function error: {}", e);
+                            error_thrown = Some(e);
+                            return;
+                        }
+                    }
+                })
+            }
+            if let Some(e) = error_thrown {
+                return Err(e.into());
+            }
+        }
+        Ok(node_emoji)
+    }
 }

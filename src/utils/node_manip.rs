@@ -48,8 +48,23 @@ async fn node_rename(node: &mut Proxy, extra: &mut ExtraSettings) {
 }
 
 /// Adds emoji to node remark based on regex matching
-fn add_emoji(node: &Proxy, emoji_array: &RegexMatchConfigs, _extra: &ExtraSettings) -> String {
+async fn add_emoji(node: &Proxy, emoji_array: &RegexMatchConfigs, extra: &ExtraSettings) -> String {
     for pattern in emoji_array {
+        if !pattern.script.is_empty() {
+            match extra
+                .eval_get_emoji_node_remark(node, pattern.script.clone())
+                .await
+            {
+                Ok(emoji) => {
+                    return format!("{} {}", emoji, node.remark);
+                }
+                Err(e) => {
+                    log::error!("Error adding emoji: {}", e);
+                }
+            }
+            continue;
+        }
+
         // Skip patterns with empty replace
         if pattern.replace.is_empty() {
             continue;
@@ -84,7 +99,14 @@ pub async fn preprocess_nodes(
 
         // Add emoji if needed
         if extra.add_emoji {
-            node.remark = add_emoji(node, &extra.emoji_array, extra);
+            if extra
+                .emoji_array
+                .iter()
+                .any(|pattern| !pattern.script.is_empty())
+            {
+                extra.init_js_context();
+            }
+            node.remark = add_emoji(node, &extra.emoji_array, extra).await;
         }
     }
 
