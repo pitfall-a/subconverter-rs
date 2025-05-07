@@ -12,7 +12,8 @@ pub struct VmessProxy {
     pub common: CommonProxyOptions,
     #[serde(skip_serializing_if = "is_empty_option_string")]
     pub uuid: Option<String>,
-    /// This is required
+    /// This is required by Clash, and the name is `alterId`
+    #[serde(rename = "alterId")]
     pub alter_id: u32,
     #[serde(skip_serializing_if = "is_empty_option_string")]
     pub cipher: Option<String>,
