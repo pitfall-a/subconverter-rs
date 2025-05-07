@@ -83,7 +83,7 @@ jobs:
       run: cargo install cross
       
     - name: Build with cross
-      run: cross build --release --features=web-api --target ${{ matrix.target }}
+      run: cross build --release --features=web-api${{ matrix.arch == 'amd64' && ',js-runtime' || '' }} --target ${{ matrix.target }}
       
     - name: Prepare artifact
       run: |
@@ -162,7 +162,7 @@ jobs:
         echo "Updated Cargo.toml version for branch build to ${{ env.RELEASE_VERSION }}"
         
     - name: Build
-      run: cargo build --release --features=web-api --target ${{ matrix.target }}
+      run: cargo build --release --features=web-api,js-runtime --target ${{ matrix.target }}
       
     - name: Prepare artifact
       run: |
@@ -240,7 +240,7 @@ jobs:
     - name: Build
       run: |
         cargo install --force --locked bindgen-cli
-        cargo build --release --features=web-api --target ${{ matrix.target }}
+        cargo build --release --features=web-api${{ matrix.arch == 'amd64' && ',js-runtime' || '' }} --target ${{ matrix.target }}
       
     - name: Prepare artifact
       shell: bash

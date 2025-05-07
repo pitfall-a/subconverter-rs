@@ -198,9 +198,9 @@ impl Default for Proxy {
         }
     }
 }
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "js-runtime")]
 use rquickjs::{Ctx, IntoJs};
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "js-runtime")]
 impl<'js> IntoJs<'js> for Proxy {
     fn into_js(self, ctx: &Ctx<'js>) -> Result<rquickjs::Value<'js>, rquickjs::Error> {
         let value =

@@ -55,10 +55,10 @@ pub struct ExtraSettings {
     /// Whether the export is authorized
     pub authorized: bool,
     /// JavaScript runtime context (not implemented in Rust version)
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(feature = "js-runtime")]
     pub js_context: Option<rquickjs::Context>,
     /// JavaScript runtime
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(feature = "js-runtime")]
     pub js_runtime: Option<rquickjs::Runtime>,
 }
 
@@ -130,15 +130,15 @@ impl Default for ExtraSettings {
                 global.clash_proxy_groups_style.clone()
             },
             authorized: false,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(feature = "js-runtime")]
             js_context: None,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(feature = "js-runtime")]
             js_runtime: None,
         }
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "js-runtime")]
 impl ExtraSettings {
     pub fn init_js_context(&mut self) {
         if self.js_runtime.is_none() {
@@ -376,7 +376,7 @@ impl ExtraSettings {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(not(feature = "js-runtime"))]
 impl ExtraSettings {
     pub fn init_js_context(&mut self) {}
     pub fn eval_filter_function(
@@ -384,26 +384,38 @@ impl ExtraSettings {
         _nodes: &mut Vec<Proxy>,
         _source_str: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        Err("JavaScript is not supported on WASM".into())
+        Err(
+            "JavaScript is not supported in this build, please enable js-runtime feature in cargo build"
+                .into(),
+        )
     }
     pub async fn eval_sort_nodes(
         &mut self,
         _nodes: &mut Vec<Proxy>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        Err("JavaScript is not supported on WASM".into())
+        Err(
+            "JavaScript is not supported in this build, please enable js-runtime feature in cargo build"
+                .into(),
+        )
     }
     pub async fn eval_get_rename_node_remark(
         &self,
         _node: &Proxy,
         _match_script: String,
     ) -> Result<String, Box<dyn std::error::Error>> {
-        Err("JavaScript is not supported on WASM".into())
+        Err(
+            "JavaScript is not supported in this build, please enable js-runtime feature in cargo build"
+                .into(),
+        )
     }
     pub async fn eval_get_emoji_node_remark(
         &self,
         _node: &Proxy,
         _match_script: String,
     ) -> Result<String, Box<dyn std::error::Error>> {
-        Err("JavaScript is not supported on WASM".into())
+        Err(
+            "JavaScript is not supported in this build, please enable js-runtime feature in cargo build"
+                .into(),
+        )
     }
 }
