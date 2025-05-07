@@ -234,6 +234,10 @@ pub async fn sub_process(
         None => global.update_interval,
     });
     // Check if we should authorize the request, if we are in API mode
+    #[cfg(not(target_arch = "wasm32"))]
+    let authorized = false;
+
+    #[cfg(target_arch = "wasm32")]
     let authorized =
         !global.api_mode || query.token.as_deref().unwrap_or_default() == global.api_access_token;
     builder.authorized(authorized);
@@ -298,9 +302,7 @@ pub async fn sub_process(
     builder.skip_cert_verify(query.scv.or(global.skip_cert_verify));
     builder.tls13(query.tls13.or(global.tls13_flag));
     builder.sort(query.sort.unwrap_or(global.enable_sort));
-    if let Some(script) = &query.sort_script {
-        builder.sort_script(script.clone());
-    }
+    builder.sort_script(query.sort_script.unwrap_or(global.sort_script.clone()));
 
     builder.filter_deprecated(query.fdn.unwrap_or(global.filter_deprecated));
     builder.clash_new_field_name(query.new_name.unwrap_or(global.clash_use_new_field));
@@ -474,14 +476,15 @@ pub async fn sub_process(
     builder.filename(query.filename.clone());
     builder.upload(query.upload.unwrap_or_default());
 
-    // // Process filter script
-    // if let Some(filter) = &query.filter {
-    //     builder = builder.filter_script(Some(filter.clone()));
-    // }
+    // Process filter script
+    let filter = query.filter.unwrap_or(global.filter_script.clone());
+    if !filter.is_empty() {
+        builder.filter_script(Some(filter));
+    }
 
     // // Process device ID
     // if let Some(dev_id) = &query.dev_id {
-    //     builder = builder.device_id(Some(dev_id.clone()));
+    //     builder.device_id(Some(dev_id.clone()));
     // }
 
     // // Set managed config prefix from global settings
