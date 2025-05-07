@@ -335,9 +335,15 @@ export default function Home() {
                   {shortUrlData && shortUrlCreated ? shortUrlData.short_url : generateApiUrl()}
                 </p>
                 <p className="text-xs mt-1">
-                  {t('useUrlMessage')}
-                  {saveApiUrl && !shortUrlCreated && t('urlWillBeSaved')}
-                  {shortUrlCreated && t('shortUrlMessage')}
+                  <span className="text-gray-400">
+                    {t('useUrlMessage')}
+                  </span>
+                  <span className="text-gray-400">
+                    {saveApiUrl && !shortUrlCreated && t('urlWillBeSaved')}
+                  </span>
+                  <span className="text-gray-400">
+                    {shortUrlCreated && t('shortUrlMessage')}
+                  </span>
                 </p>
               </div>
 
