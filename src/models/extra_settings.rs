@@ -1,7 +1,5 @@
 use std::{cmp::Ordering, str::FromStr};
 
-use rquickjs::{function::Args, Context, Function, IntoJs, Runtime};
-
 use crate::{utils::file_get_async, Settings};
 
 use super::{Proxy, ProxyType, RegexMatchConfig, RegexMatchConfigs};
@@ -57,9 +55,11 @@ pub struct ExtraSettings {
     /// Whether the export is authorized
     pub authorized: bool,
     /// JavaScript runtime context (not implemented in Rust version)
-    pub js_context: Option<Context>,
+    #[cfg(not(target_arch = "wasm32"))]
+    pub js_context: Option<rquickjs::Context>,
     /// JavaScript runtime
-    pub js_runtime: Option<Runtime>,
+    #[cfg(not(target_arch = "wasm32"))]
+    pub js_runtime: Option<rquickjs::Runtime>,
 }
 
 impl std::fmt::Debug for ExtraSettings {
@@ -130,17 +130,21 @@ impl Default for ExtraSettings {
                 global.clash_proxy_groups_style.clone()
             },
             authorized: false,
+            #[cfg(not(target_arch = "wasm32"))]
             js_context: None,
+            #[cfg(not(target_arch = "wasm32"))]
             js_runtime: None,
         }
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl ExtraSettings {
     pub fn init_js_context(&mut self) {
         if self.js_runtime.is_none() {
-            self.js_runtime = Some(Runtime::new().unwrap());
-            self.js_context = Some(Context::base(&self.js_runtime.as_ref().unwrap()).unwrap());
+            self.js_runtime = Some(rquickjs::Runtime::new().unwrap());
+            self.js_context =
+                Some(rquickjs::Context::base(&self.js_runtime.as_ref().unwrap()).unwrap());
         }
     }
 
@@ -324,6 +328,7 @@ impl ExtraSettings {
         }
         Ok(node_name)
     }
+
     pub async fn eval_get_emoji_node_remark(
         &self,
         node: &Proxy,
@@ -368,5 +373,37 @@ impl ExtraSettings {
             }
         }
         Ok(node_emoji)
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl ExtraSettings {
+    pub fn init_js_context(&mut self) {}
+    pub fn eval_filter_function(
+        &mut self,
+        _nodes: &mut Vec<Proxy>,
+        _source_str: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        Err("JavaScript is not supported on WASM".into())
+    }
+    pub async fn eval_sort_nodes(
+        &mut self,
+        _nodes: &mut Vec<Proxy>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        Err("JavaScript is not supported on WASM".into())
+    }
+    pub async fn eval_get_rename_node_remark(
+        &self,
+        _node: &Proxy,
+        _match_script: String,
+    ) -> Result<String, Box<dyn std::error::Error>> {
+        Err("JavaScript is not supported on WASM".into())
+    }
+    pub async fn eval_get_emoji_node_remark(
+        &self,
+        _node: &Proxy,
+        _match_script: String,
+    ) -> Result<String, Box<dyn std::error::Error>> {
+        Err("JavaScript is not supported on WASM".into())
     }
 }

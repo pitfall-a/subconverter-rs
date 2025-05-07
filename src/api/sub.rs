@@ -234,6 +234,10 @@ pub async fn sub_process(
         None => global.update_interval,
     });
     // Check if we should authorize the request, if we are in API mode
+    #[cfg(not(target_arch = "wasm32"))]
+    let authorized = false;
+
+    #[cfg(target_arch = "wasm32")]
     let authorized =
         !global.api_mode || query.token.as_deref().unwrap_or_default() == global.api_access_token;
     builder.authorized(authorized);

@@ -4,7 +4,6 @@
 
 use std::collections::HashSet;
 
-use rquickjs::{Ctx, IntoJs};
 use serde::{Deserialize, Serialize};
 
 use super::proxy_node::combined::CombinedProxy;
@@ -199,7 +198,9 @@ impl Default for Proxy {
         }
     }
 }
-
+#[cfg(not(target_arch = "wasm32"))]
+use rquickjs::{Ctx, IntoJs};
+#[cfg(not(target_arch = "wasm32"))]
 impl<'js> IntoJs<'js> for Proxy {
     fn into_js(self, ctx: &Ctx<'js>) -> Result<rquickjs::Value<'js>, rquickjs::Error> {
         let value =
