@@ -19,6 +19,43 @@ fn default_ver() -> u32 {
     3
 }
 
+// START Helper function for deserializing boolean-like values
+mod bool_deserializer {
+    use serde::{self, Deserialize, Deserializer};
+
+    pub fn deserialize_option_bool<'de, D>(deserializer: D) -> Result<Option<bool>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum BoolOrString {
+            Bool(bool),
+            String(String),
+            Int(i64),
+        }
+
+        match Option::<BoolOrString>::deserialize(deserializer)? {
+            Some(BoolOrString::Bool(b)) => Ok(Some(b)),
+            Some(BoolOrString::Int(i)) => match i {
+                0 => Ok(Some(false)),
+                1 => Ok(Some(true)),
+                _ => Ok(None), /* Or return an error: Err(serde::de::Error::custom("invalid
+                                * integer for bool")) */
+            },
+            Some(BoolOrString::String(s)) => match s.to_lowercase().as_str() {
+                "true" | "yes" | "1" | "on" => Ok(Some(true)),
+                "false" | "no" | "0" | "off" => Ok(Some(false)),
+                _ => Ok(None), /* Or return an error:
+                                * Err(serde::de::Error::custom(format!("invalid string for bool:
+                                * {}", s))) */
+            },
+            None => Ok(None),
+        }
+    }
+}
+// END Helper function
+
 /// Query parameters for subscription conversion
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 pub struct SubconverterQuery {
@@ -28,6 +65,10 @@ pub struct SubconverterQuery {
     #[serde(default = "default_ver")]
     pub ver: u32,
     /// Clash new field name
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub new_name: Option<bool>,
     /// URLs to convert (pipe separated)
     pub url: Option<String>,
@@ -49,47 +90,111 @@ pub struct SubconverterQuery {
     /// Device ID (for device-specific configurations)
     pub dev_id: Option<String>,
     /// Whether to insert nodes
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub insert: Option<bool>,
     /// Whether to prepend insert nodes
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub prepend: Option<bool>,
     /// Custom filename for download
     pub filename: Option<String>,
     /// Append proxy type to remarks
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub append_type: Option<bool>,
     /// Whether to remove old emoji and add new emoji
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub emoji: Option<bool>,
     /// Whether to add emoji
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub add_emoji: Option<bool>,
     /// Whether to remove emoji
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub remove_emoji: Option<bool>,
     /// List mode (node list only)
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub list: Option<bool>,
     /// Sort nodes
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub sort: Option<bool>,
 
     /// Sort Script
     pub sort_script: Option<String>,
 
     /// argFilterDeprecated
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub fdn: Option<bool>,
 
     /// Information for filtering, rename, emoji addition
     pub rename: Option<String>,
     /// Whether to enable TCP Fast Open
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub tfo: Option<bool>,
     /// Whether to enable UDP
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub udp: Option<bool>,
     /// Whether to skip certificate verification
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub scv: Option<bool>,
     /// Whether to enable TLS 1.3
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub tls13: Option<bool>,
     /// Enable rule generator
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub rename_node: Option<bool>,
     /// Update interval in seconds
     pub interval: Option<u32>,
     /// Update strict mode
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub strict: Option<bool>,
     /// Upload to gist
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub upload: Option<bool>,
     /// Authentication token
     pub token: Option<String>,
@@ -97,9 +202,21 @@ pub struct SubconverterQuery {
     pub filter: Option<String>,
 
     /// Clash script
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub script: Option<bool>,
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub classic: Option<bool>,
 
+    #[serde(
+        default,
+        deserialize_with = "bool_deserializer::deserialize_option_bool"
+    )]
     pub expand: Option<bool>,
 
     /// Singbox specific parameters
