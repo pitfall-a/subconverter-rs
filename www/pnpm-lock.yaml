@@ -48,8 +48,8 @@ importers:
         specifier: ^19.1.0
         version: 19.1.0(react@19.1.0)
       subconverter-wasm:
-        specifier: 0.2.33
-        version: 0.2.33
+        specifier: 0.2.34
+        version: 0.2.34
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.1
@@ -2987,8 +2987,8 @@ packages:
       babel-plugin-macros:
         optional: true
 
-  subconverter-wasm@0.2.33:
-    resolution: {integrity: sha512-/6DxgbIG6qJj0InYeiVA1hHU0IFZdqXMk4rULWxVIVB1dLYBZR7WX8hpYiYggRGjVkRXeeSVKMZ6daYRZfmFzw==}
+  subconverter-wasm@0.2.34:
+    resolution: {integrity: sha512-s6zhrK0mAHThEw+yfHFAOEPtyP5TtX3tdI89RT8Zc+MUa3G3/cnjNnV9VPpl2qJHA2TQv/dX4MPtkUS75NaRkg==}
 
   supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
@@ -6425,7 +6425,7 @@ snapshots:
       client-only: 0.0.1
       react: 19.1.0
 
-  subconverter-wasm@0.2.33:
+  subconverter-wasm@0.2.34:
     dependencies:
       '@netlify/blobs': 8.2.0
       '@vercel/kv': 3.0.0
