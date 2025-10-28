@@ -35,9 +35,6 @@ pub async fn sub_handler(req: HttpRequest, query: web::Query<SubconverterQuery>)
     let req_url = req.uri().to_string();
 
     let mut request_headers = HashMap::new();
-    for (key, value) in req.headers() {
-        request_headers.insert(key.to_string(), value.to_str().unwrap_or("").to_string());
-    }
 
     let mut modified_query = query.into_inner();
     modified_query.request_headers = Some(request_headers);
