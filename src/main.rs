@@ -37,7 +37,7 @@ struct Args {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Initialize the logger
-    env_logger::init_from_env(Env::default().default_filter_or("info"));
+    env_logger::init_from_env(Env::default().default_filter_or("debug"));
 
     // Parse command line arguments
     let args = Args::parse();
