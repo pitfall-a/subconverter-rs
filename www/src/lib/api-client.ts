@@ -1,4 +1,4 @@
-import { FileAttributes } from 'subconverter-wasm';
+import { FileAttributes } from 'pitfall-subconverter-wasm';
 
 /**
  * Response data from the subscription converter API

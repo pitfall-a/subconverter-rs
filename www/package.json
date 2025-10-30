@@ -21,10 +21,11 @@
     "monaco-editor": "^0.52.2",
     "next": "15.3.0",
     "next-intl": "^4.0.2",
+    "pitfall-subconverter-wasm": "0.2.34-pitfall-a.3",
+    "pkg": "link:../subconverter-rs/pkg",
     "postcss": "^8.5.3",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "subconverter-wasm": "0.2.34"
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -47,6 +48,7 @@
     "onlyBuiltDependencies": [
       "esbuild",
       "sharp"
-    ]
+    ],
+    "overrides": {}
   }
 }

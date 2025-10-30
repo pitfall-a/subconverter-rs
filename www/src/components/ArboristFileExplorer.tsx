@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { DirectoryEntry, FileAttributes } from 'subconverter-wasm';
+import { DirectoryEntry, FileAttributes } from 'pitfall-subconverter-wasm';
 import * as apiClient from '@/lib/api-client';
 
 interface ArboristFileExplorerProps {
