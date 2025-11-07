@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     // Construct a JSON query object from URL parameters
     const params: any = Object.fromEntries(request.nextUrl.searchParams);
     const requestHeaders = Object.fromEntries(request.headers.entries());
-    params['request_headers'] = requestHeaders;
+    // params['request_headers'] = requestHeaders;
 
     // Normalize the 'url' parameter if it exists
     if (typeof params.url === 'string') {
